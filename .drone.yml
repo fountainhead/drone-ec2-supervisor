@@ -1,0 +1,23 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: Install dependencies
+    image: node:carbon-alpine
+    commands:
+      - yarn
+
+  - name: Lint
+    image: node:carbon-alpine
+    commands:
+      - yarn lint
+
+  - name: Test
+    image: node:carbon-alpine
+    commands:
+      - yarn test
+
+  - name: Publish
+    image: node:carbon-alpine
+    commands:
+      - yarn semantic-release
