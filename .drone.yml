@@ -20,4 +20,5 @@ steps:
   - name: Publish
     image: node:carbon-alpine
     commands:
+      - apk add --no-cache git
       - yarn semantic-release
