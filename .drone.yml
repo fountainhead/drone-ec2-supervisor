@@ -22,3 +22,8 @@ steps:
     commands:
       - apk add --no-cache git
       - yarn semantic-release
+    when:
+      branch:
+        - master
+        - alpha
+        - beta
