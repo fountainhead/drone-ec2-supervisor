@@ -17,6 +17,11 @@ steps:
     commands:
       - yarn test
 
+  - name: Build
+    image: node:carbon-alpine
+    commands:
+      - yarn build
+
   - name: Publish
     image: node:carbon-alpine
     environment:
