@@ -1,0 +1,14 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+    "quotemark": [true, "single"],
+    "interface-over-type-literal": false,
+    "arrow-parens": [true, "ban-single-arg-parens"],
+    "no-shadowed-variable": [true, {"temporalDeadZone": false}]
+  },
+  "rulesDirectory": []
+}

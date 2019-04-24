@@ -1,0 +1,6 @@
+src
+coverage
+Dockerfile
+.dockerignore
+tsconfig.json
+tslint.json
