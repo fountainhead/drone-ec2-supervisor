@@ -19,6 +19,11 @@ steps:
 
   - name: Publish
     image: node:carbon-alpine
+    environment:
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
     commands:
       - apk add --no-cache git
       - yarn semantic-release
