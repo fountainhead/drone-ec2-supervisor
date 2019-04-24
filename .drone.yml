@@ -30,7 +30,6 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-      - apk add --no-cache git
       - yarn semantic-release
     when:
       branch:
