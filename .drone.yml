@@ -3,27 +3,27 @@ name: default
 
 steps:
   - name: Install dependencies
-    image: node:carbon-alpine
+    image: node:carbon
     commands:
       - yarn
 
   - name: Lint
-    image: node:carbon-alpine
+    image: node:carbon
     commands:
       - yarn lint
 
   - name: Test
-    image: node:carbon-alpine
+    image: node:carbon
     commands:
       - yarn test
 
   - name: Build
-    image: node:carbon-alpine
+    image: node:carbon
     commands:
       - yarn build
 
   - name: Publish
-    image: node:carbon-alpine
+    image: node:carbon
     environment:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
@@ -40,4 +40,7 @@ steps:
 
 when:
   event:
-    - push
+    # Only build for Pushes to Branches
+    exclude:
+      - pull_request
+      - tag
