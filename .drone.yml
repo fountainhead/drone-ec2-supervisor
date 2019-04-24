@@ -37,7 +37,7 @@ steps:
         - alpha
         - beta
 
-when:
+trigger:
   event:
     # Only build for Pushes to Branches
     exclude:
