@@ -37,3 +37,7 @@ steps:
         - master
         - alpha
         - beta
+
+when:
+  event:
+    - push
