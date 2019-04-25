@@ -70,7 +70,7 @@ This Program receives it's configuration parameters via Environment Variables, w
 | `DRONE_TOKEN` | The API Token that should be used for communicating with the Drone Server. | **REQUIRED** |
 | `DRONE_SERVER` | The URL of the Drone Server. | **REQUIRED** |
 | `EC2_INSTANCE_ID` | The ID of the EC2 Instance to start/stop based on Drone queue activity. | **REQUIRED** |
-| `EC2_HIBERNATION_ENABLED` | Whether stop the EC2 Instance using AWS's 'hibernate on stop' behaviour. Requires that the Instance be explicitly configured to support Hibernation. Set to `false` to use the normal 'stop' behaviour. | `true` |
+| `EC2_HIBERNATION_ENABLED` | Whether stop the EC2 Instance using AWS's 'hibernate on stop' behaviour. Requires that the Instance be explicitly configured to support Hibernation. | `false` |
 | `CHECK_INTERVAL_SECONDS` | The interval between each check of the Drone queue state and EC2 Instance State, in seconds. | `15` |
 | `STOP_TIMEOUT_SECONDS` | The number of seconds to wait before stopping the EC2 Instance when the Drone queue is empty. This allows the 'debounce' period to be tuned to your liking depending. <br/>**NOTE:** It is recommended that this value be at least double that of `CHECK_INTERVAL_SECONDS`, to ensure that the EC2 Instance doesn't get shut down before the next check of the Drone queue and EC2 Instance State. | `60` |
 | `LOG_LEVEL` | The log level that should be emitted to stdout.<br/>Allowed values are `FATAL`, `ERROR`, `WARN`, `INFO`, `DEBUG` and `TRACE`. | `INFO` |

@@ -31,7 +31,7 @@ export const createFromEnvironment = (): Config => {
     );
   }
 
-  const ec2HibernationEnabled = process.env.EC2_HIBERNATION_ENABLED !== 'false';
+  const ec2HibernationEnabled = process.env.EC2_HIBERNATION_ENABLED === 'true';
 
   const checkIntervalSeconds = process.env.CHECK_INTERVAL_SECONDS ?
     parseInt(process.env.CHECK_INTERVAL_SECONDS, 10) :
