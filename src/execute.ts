@@ -11,7 +11,10 @@ type ScheduleOptions = {
   timeoutSeconds?: number;
 };
 
-export const schedule = ({ log: parentLogger, fn, timeoutSeconds = 0 }: ScheduleOptions) => {
+const MAX_RETRY_TIMEOUT = 15;
+
+export const schedule = (options: ScheduleOptions) => {
+  const { log: parentLogger, fn, timeoutSeconds = 0 } = options;
   const log = parentLogger.child({ name: 'execute.schedule' });
 
   if (scheduleTimer) {
@@ -28,12 +31,21 @@ export const schedule = ({ log: parentLogger, fn, timeoutSeconds = 0 }: Schedule
 
   scheduleTimer = setTimeout(async () => {
     log.info('Executing scheduled action');
+    scheduleTimer = undefined;
+
     try {
       const result = await fn();
       log.info({ result }, 'Execution of scheduled action successful');
-      scheduleTimer = undefined;
     } catch (err) {
       log.warn({ err }, 'Execution of scheduled action threw an error');
+      const retrySeconds =
+        timeoutSeconds === 0 ?
+          1 :
+          Math.min(timeoutSeconds * 2, MAX_RETRY_TIMEOUT);
+
+      log.info({ retrySeconds }, 'Retry scheduled in %d seconds', retrySeconds);
+
+      schedule({ ...options, timeoutSeconds: retrySeconds });
     }
   }, timeoutSeconds * 1000);
 };

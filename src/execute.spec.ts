@@ -78,17 +78,55 @@ describe('schedule', () => {
     expect(fn1).not.toHaveBeenCalled();
   });
 
-  it('it logs exceptions as a warning', () => {
-    const err = new Error('oh no!');
+  describe('when scheduled function throws', () => {
+    let err: Error;
+    let fn: () => void;
 
-    const fn = jest.fn().mockImplementation(() => {
-      throw err;
+    beforeEach(() => {
+      err = new Error('oh no!');
+
+      fn = jest.fn().mockImplementation(() => {
+        throw err;
+      });
     });
 
-    execute.schedule({ log, fn, timeoutSeconds: 10 });
-    jest.advanceTimersByTime(10000);
+    it('it logs exceptions as a warning', () => {
+      execute.schedule({ log, fn, timeoutSeconds: 10 });
+      jest.advanceTimersByTime(10000);
 
-    expect(log.warn).toHaveBeenCalledWith({ err }, 'Execution of scheduled action threw an error');
+      expect(log.warn).toHaveBeenCalledWith({ err }, 'Execution of scheduled action threw an error');
+    });
+
+    it('retries with an exponential backoff timer', () => {
+      execute.schedule({ log, fn });
+
+      jest.advanceTimersByTime(0);
+      expect(fn).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(1000);
+      expect(fn).toHaveBeenCalledTimes(2);
+
+      jest.advanceTimersByTime(1000);
+      expect(fn).toHaveBeenCalledTimes(2);
+
+      jest.advanceTimersByTime(1000);
+      expect(fn).toHaveBeenCalledTimes(3);
+    });
+
+    it('preempts any pending retries with a new call', () => {
+      execute.schedule({ log, fn });
+
+      jest.advanceTimersByTime(0);
+      expect(fn).toHaveBeenCalledTimes(1);
+
+      const goodFn = jest.fn().mockImplementation(() => true);
+
+      execute.schedule({ log, fn: goodFn, timeoutSeconds: 1 });
+      jest.advanceTimersByTime(1000);
+
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(goodFn).toHaveBeenCalledTimes(1);
+    });
   });
 });
 
