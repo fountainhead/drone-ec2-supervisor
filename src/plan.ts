@@ -150,7 +150,7 @@ export const determineNextAction =
       }
     }
 
-    if (droneQueueState === DroneQueueState.Pending) {
+    if (droneQueueState === DroneQueueState.Pending || droneQueueState === DroneQueueState.Running) {
       if (ec2InstanceState === Ec2InstanceState.Stopping || ec2InstanceState === Ec2InstanceState.Stopped) {
         const nextAction = Action.Start;
         log.debug({ phase: 'finish', nextAction });

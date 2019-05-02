@@ -205,6 +205,11 @@ describe('plan', () => {
     name: 'builds are pending and EC2 instance is stopped',
     queue: [{ status: 'pending' }],
   }, {
+    action: plan.Action.Start,
+    instanceState: 'stopped',
+    name: 'a build is stuck in the `running` state but the EC2 instance is stopped',
+    queue: [{ status: 'pending' }, { status: 'pending' }, { status: 'running' }],
+  }, {
     action: plan.Action.ScheduleStop,
     instanceState: 'running',
     name: 'no builds are pending and EC2 instance is running',
