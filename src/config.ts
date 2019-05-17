@@ -3,6 +3,7 @@ export type Config = {
   stopTimeoutSeconds: number;
 
   drone: {
+    ignoreRunningForSeconds: number;
     token: string;
     server: string;
   },
@@ -41,9 +42,14 @@ export const createFromEnvironment = (): Config => {
     parseInt(process.env.STOP_TIMEOUT_SECONDS, 10) :
     60;
 
+  const ignoreRunningForSeconds = process.env.IGNORE_RUNNING_FOR_SECONDS ?
+    parseInt(process.env.IGNORE_RUNNING_FOR_SECONDS, 10) :
+    3600;
+
   return {
     checkIntervalSeconds,
     drone: {
+      ignoreRunningForSeconds,
       server: droneServer,
       token: droneToken,
     },

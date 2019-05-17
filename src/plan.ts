@@ -5,15 +5,20 @@ import { Logger } from 'pino';
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 type GetDroneQueueOptions = {
+  ignoreRunningForSeconds: number;
   log: Logger;
   token: string;
   server: string;
   fetchFn: typeof nodeFetch;
 };
 
-// Drone's Queue API items contain more fields than this, but all we care about for our purposes is `status`
+/**
+ * Drone's Queue API items contain more fields than this, but all we care about for our purposes is `status` and
+ * `created`
+ */
 export type DroneQueueItem = {
   status: 'running' | 'pending';
+  created: number;
 };
 
 export const getDroneQueue =
@@ -35,6 +40,7 @@ export const getDroneQueue =
   };
 
 type DetermineDroneQueueStateOptions = {
+  ignoreRunningForSeconds: number;
   log: Logger;
   queue: DroneQueueItem[];
 };
@@ -46,8 +52,11 @@ export enum DroneQueueState {
 }
 
 export const determineDroneQueueState =
-  ({ log: parentLog, queue }: DetermineDroneQueueStateOptions): DroneQueueState => {
+  ({ ignoreRunningForSeconds, log: parentLog, queue }: DetermineDroneQueueStateOptions): DroneQueueState => {
     const log = parentLog.child({ name: 'plan.determineDroneQueueState' });
+    const now = Math.floor(Date.now() / 1000);
+
+    queue = queue.filter(item => item.created >= now - ignoreRunningForSeconds);
 
     if (queue.length === 0) {
       log.debug({ phase: 'finish', determinedState: 'empty' });
@@ -175,8 +184,8 @@ export const plan = async ({ log, drone, ec2 }: PlanOptions) => {
     getEc2Instance({ ...ec2, log }),
   ]);
 
-  const droneQueueState = determineDroneQueueState({ log, queue });
-  const ec2InstanceState = determineEc2InstanceState({ log, instance });
+  const droneQueueState = determineDroneQueueState({ ...drone, log, queue });
+  const ec2InstanceState = determineEc2InstanceState({ ...ec2, log, instance });
 
   return determineNextAction({ log, droneQueueState, ec2InstanceState });
 };

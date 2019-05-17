@@ -11,6 +11,7 @@ describe('create', () => {
     config: {
       checkIntervalSeconds: 10,
       drone: {
+        ignoreRunningForSeconds: 3600,
         server: 'http://test-server',
         token: 'test-token',
       },

@@ -73,6 +73,7 @@ This Program receives it's configuration parameters via Environment Variables, w
 | `EC2_HIBERNATION_ENABLED` | Whether stop the EC2 Instance using AWS's 'hibernate on stop' behaviour. Requires that the Instance be explicitly configured to support Hibernation. | `false` |
 | `CHECK_INTERVAL_SECONDS` | The interval between each check of the Drone queue state and EC2 Instance State, in seconds. | `15` |
 | `STOP_TIMEOUT_SECONDS` | The number of seconds to wait before stopping the EC2 Instance when the Drone queue is empty. This allows the 'debounce' period to be tuned to your liking depending. <br/>**NOTE:** It is recommended that this value be at least double that of `CHECK_INTERVAL_SECONDS`, to ensure that the EC2 Instance doesn't get shut down before the next check of the Drone queue and EC2 Instance State. | `60` |
+| `IGNORE_RUNNING_FOR_SECONDS` | Queued items that are older than this value, in seconds, should be ignored.<br/>This is useful for preventing 'stuck' builds from keeping your EC2 instance stuck in a running state when it should be shut down.<br/>**NOTE**: It is recommended that this value be at least the maximum time your longest Pipeline step to execute. | `3600` |
 | `LOG_LEVEL` | The log level that should be emitted to stdout.<br/>Allowed values are `FATAL`, `ERROR`, `WARN`, `INFO`, `DEBUG` and `TRACE`. | `INFO` |
 | `PRETTY_LOGS` | When `true`, logs emitted to stdout are in a human-readable, 'pretty' format. When `false`, logs are emitted to stdout in a JSON format. | `true` |
 

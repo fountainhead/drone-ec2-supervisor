@@ -1,6 +1,8 @@
 import { describeInstancesResponse, ec2client, fetchFn, fetchResponse, log } from './mocks';
 import * as plan from './plan';
 
+const now = Math.floor(Date.now() / 1000);
+
 describe('getDroneQueue', () => {
   it('fetches the `/queue` endpoint from the Drone API using the specified token', async () => {
     const queue = [{ status: 'pending' }];
@@ -8,6 +10,7 @@ describe('getDroneQueue', () => {
 
     const result = await plan.getDroneQueue({
       fetchFn,
+      ignoreRunningForSeconds: 3600,
       log,
       server: 'http://test-server',
       token: 'test-token',
@@ -36,22 +39,36 @@ describe('determineDroneQueueState', () => {
     state: plan.DroneQueueState.Empty,
   }, {
     condition: `only contains 'running' items`,
-    queue: [{ status: 'running' }, { status: 'running' }],
+    queue: [{ status: 'running', created: now - 10 }, { status: 'running', created: now - 20 }],
     state: plan.DroneQueueState.Running,
   }, {
     condition: `only contains 'pending' items`,
-    queue: [{ status: 'pending' }, { status: 'pending' }],
+    queue: [{ status: 'pending', created: now }, { status: 'pending', created: now }],
     state: plan.DroneQueueState.Pending,
   }, {
     condition: `contains a mixture of 'running' and 'pending' items`,
-    queue: [{ status: 'running' }, { status: 'pending' }, { status: 'running' }],
+    queue: [{
+      created: now - 10, status: 'running',
+    }, {
+      created: now - 2, status: 'pending',
+    }, {
+      created: now - 20, status: 'running',
+    }],
     state: plan.DroneQueueState.Running,
+  }, {
+    condition: `contains only 'running' items that are older than the ignore time`,
+    queue: [{ status: 'running', created: now - 3605 }, { status: 'running', created: now - 7200 }],
+    state: plan.DroneQueueState.Empty,
+  }, {
+    condition: `contains a mixture of 'pending' and old 'running' items`,
+    queue: [{ status: 'pending', created: now }, { status: 'running', created: now - 7200 }],
+    state: plan.DroneQueueState.Pending,
   }];
 
   tests.forEach(({ condition, queue, state }) => {
     describe(`when the queue ${condition}`, () => {
       it(`determines the state to be '${state}'`, () => {
-        expect(plan.determineDroneQueueState({ log, queue })).toEqual(state);
+        expect(plan.determineDroneQueueState({ log, queue, ignoreRunningForSeconds: 3600 })).toEqual(state);
       });
     });
   });
@@ -198,17 +215,23 @@ describe('plan', () => {
     action: plan.Action.NoOp,
     instanceState: 'running',
     name: 'builds are running and EC2 instance is running',
-    queue: [{ status: 'running' }],
+    queue: [{ status: 'running', created: now - 10 }],
   }, {
     action: plan.Action.Start,
     instanceState: 'stopped',
     name: 'builds are pending and EC2 instance is stopped',
-    queue: [{ status: 'pending' }],
+    queue: [{ status: 'pending', created: now }],
   }, {
     action: plan.Action.Start,
     instanceState: 'stopped',
     name: 'a build is stuck in the `running` state but the EC2 instance is stopped',
-    queue: [{ status: 'pending' }, { status: 'pending' }, { status: 'running' }],
+    queue: [{
+      created: now, status: 'pending',
+    }, {
+      created: now, status: 'pending',
+    }, {
+      created: now - 10, status: 'running',
+    }],
   }, {
     action: plan.Action.ScheduleStop,
     instanceState: 'running',
@@ -234,6 +257,7 @@ describe('plan', () => {
         const result = await plan.plan({
           drone: {
             fetchFn,
+            ignoreRunningForSeconds: 3600,
             server: 'http://test-server',
             token: 'test-token',
           },
